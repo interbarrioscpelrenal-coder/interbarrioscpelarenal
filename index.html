@@ -1,1 +1,995 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INTERBARRIOS EL ARENAL</title>
 
+<style>
+*{box-sizing:border-box}
+
+html{scroll-behavior:smooth}
+
+body{
+margin:0;
+font-family:Arial,Helvetica,sans-serif;
+background:#070a14;
+color:white;
+}
+
+body:before{
+content:"";
+position:fixed;
+inset:0;
+z-index:-2;
+background:
+radial-gradient(circle at 10% 15%,#174dc9 0,transparent 27%),
+radial-gradient(circle at 90% 10%,#7b27c7 0,transparent 26%),
+radial-gradient(circle at 15% 90%,#069b72 0,transparent 28%),
+radial-gradient(circle at 90% 90%,#d72742 0,transparent 25%),
+#070a14;
+}
+
+header{
+position:sticky;
+top:0;
+z-index:10;
+padding:17px 5%;
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:#070a14ee;
+backdrop-filter:blur(15px);
+border-bottom:1px solid #ffffff18;
+}
+
+.brand{
+font-weight:900;
+letter-spacing:1px;
+font-size:18px;
+}
+
+.brand span{
+color:#ffd52f;
+}
+
+nav{
+display:flex;
+gap:8px;
+}
+
+nav button{
+color:white;
+background:#ffffff10;
+border:1px solid #ffffff15;
+padding:10px 15px;
+border-radius:10px;
+cursor:pointer;
+}
+
+.page{display:none}
+.page.active{display:block}
+
+.landing{
+min-height:calc(100vh - 70px);
+display:grid;
+place-items:center;
+text-align:center;
+padding:60px 20px;
+}
+
+.eyebrow{
+display:inline-block;
+padding:8px 14px;
+border-radius:99px;
+background:#ffd52f;
+color:#111;
+font-weight:900;
+font-size:13px;
+}
+
+h1{
+font-size:clamp(45px,9vw,100px);
+line-height:.9;
+letter-spacing:-4px;
+margin:20px 0;
+}
+
+.landing p{
+max-width:650px;
+margin:0 auto 30px;
+color:#bfc4d7;
+font-size:18px;
+}
+
+.season-card{
+width:min(450px,92vw);
+margin:auto;
+padding:30px;
+border-radius:25px;
+background:#ffffff10;
+border:1px solid #ffffff20;
+box-shadow:0 20px 70px #0007;
+}
+
+.season-card h2{
+font-size:30px;
+margin:12px 0;
+}
+
+.champ{
+color:#ffd52f;
+font-weight:900;
+margin-bottom:20px;
+}
+
+.primary{
+border:0;
+background:#ffd52f;
+color:#111;
+font-weight:900;
+padding:14px 22px;
+border-radius:13px;
+cursor:pointer;
+font-size:15px;
+}
+
+.container{
+width:min(1200px,92%);
+margin:auto;
+}
+
+.hero-small{
+padding:60px 0 35px;
+}
+
+.hero-small h1{
+font-size:clamp(40px,7vw,75px);
+margin:10px 0;
+}
+
+.hero-small p{
+color:#bfc4d7;
+}
+
+.section{
+padding:35px 0;
+}
+
+.section h2{
+font-size:32px;
+margin:0 0 8px;
+}
+
+.lead{
+color:#aeb5ca;
+margin-bottom:22px;
+}
+
+.team-grid{
+display:grid;
+grid-template-columns:repeat(6,1fr);
+gap:12px;
+}
+
+.team-card{
+background:#ffffff0b;
+border:1px solid #ffffff15;
+border-radius:18px;
+padding:16px;
+text-align:center;
+}
+
+.logo{
+width:75px;
+height:75px;
+border-radius:50%;
+margin:auto auto 10px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:17px;
+font-weight:900;
+background:linear-gradient(135deg,#1d4ed8,#7c3aed);
+border:3px solid #ffffff30;
+}
+
+.team-card b{
+display:block;
+font-size:13px;
+}
+
+.table-wrap{
+overflow:auto;
+border-radius:20px;
+border:1px solid #ffffff15;
+}
+
+table{
+width:100%;
+min-width:780px;
+border-collapse:collapse;
+background:#ffffff08;
+}
+
+th,td{
+padding:13px 12px;
+border-bottom:1px solid #ffffff0d;
+text-align:center;
+white-space:nowrap;
+}
+
+th{
+font-size:11px;
+color:#9ea5bc;
+}
+
+td:nth-child(2),
+th:nth-child(2){
+text-align:left;
+}
+
+.rank{
+font-weight:900;
+font-size:18px;
+}
+
+.club{
+font-weight:800;
+}
+
+.tabs{
+display:flex;
+gap:8px;
+flex-wrap:wrap;
+margin:18px 0;
+}
+
+.tab{
+padding:10px 16px;
+border-radius:11px;
+background:#ffffff0c;
+color:white;
+border:1px solid #ffffff15;
+cursor:pointer;
+}
+
+.tab.active{
+background:#ffd52f;
+color:#111;
+}
+
+.hidden{
+display:none;
+}
+
+.match-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:14px;
+}
+
+.match-card{
+background:#ffffff0b;
+border:1px solid #ffffff15;
+border-radius:18px;
+padding:18px;
+}
+
+.match-date{
+font-size:11px;
+color:#ffd52f;
+font-weight:900;
+}
+
+.match-teams{
+display:grid;
+grid-template-columns:1fr 60px 1fr;
+align-items:center;
+text-align:center;
+gap:8px;
+margin-top:15px;
+}
+
+.match-team{
+font-weight:800;
+font-size:13px;
+}
+
+.score{
+font-size:22px;
+font-weight:900;
+}
+
+.future button{
+margin-top:15px;
+width:100%;
+padding:11px;
+border:0;
+border-radius:10px;
+font-weight:900;
+cursor:pointer;
+background:#ffd52f;
+}
+
+.stats{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:14px;
+}
+
+.stat{
+padding:22px;
+border-radius:18px;
+background:#ffffff0b;
+border:1px solid #ffffff13;
+}
+
+.stat strong{
+font-size:28px;
+display:block;
+margin-bottom:6px;
+}
+
+.stat span{
+color:#aeb5ca;
+font-size:13px;
+}
+
+.notice{
+padding:18px;
+border-radius:15px;
+background:#ffd52f15;
+border:1px solid #ffd52f40;
+color:#fff;
+}
+
+footer{
+padding:50px 5%;
+text-align:center;
+color:#858ca3;
+border-top:1px solid #ffffff12;
+margin-top:40px;
+}
+
+@media(max-width:900px){
+.team-grid{grid-template-columns:repeat(3,1fr)}
+.match-grid{grid-template-columns:repeat(2,1fr)}
+.stats{grid-template-columns:repeat(2,1fr)}
+}
+
+@media(max-width:600px){
+header{
+flex-direction:column;
+gap:12px;
+align-items:flex-start;
+}
+
+.team-grid{grid-template-columns:repeat(2,1fr)}
+.match-grid{grid-template-columns:1fr}
+.stats{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="brand">
+INTERBARRIOS <span>EL ARENAL</span>
+</div>
+
+<nav>
+<button onclick="showPage('home')">Inicio</button>
+<button onclick="showPage('season')">2026</button>
+</nav>
+</header>
+
+
+<!-- INICIO -->
+
+<div id="home" class="page active">
+
+<main class="landing">
+
+<div>
+
+<div class="eyebrow">
+⚽ CAMPEONATO INTERBARRIOS
+</div>
+
+<h1>
+INTERBARRIOS<br>
+<span style="color:#ffd52f">
+EL ARENAL
+</span>
+</h1>
+
+<p>
+Historial de temporadas, tablas, resultados,
+estadísticas y pronósticos del campeonato.
+</p>
+
+<div class="season-card">
+
+<div class="eyebrow">
+TEMPORADA DISPONIBLE
+</div>
+
+<h2>
+INTERBARRIOS 2026
+</h2>
+
+<div class="champ">
+🏆 CAMPEÓN: POR DEFINIR
+</div>
+
+<button class="primary" onclick="showPage('season')">
+ENTRAR AL CAMPEONATO →
+</button>
+
+</div>
+
+</div>
+
+</main>
+
+</div>
+
+
+<!-- TEMPORADA -->
+
+<div id="season" class="page">
+
+<main class="container">
+
+<section class="hero-small">
+
+<div class="eyebrow">
+INTERBARRIOS EL ARENAL
+</div>
+
+<h1>
+INTERBARRIOS
+<span style="color:#ffd52f">2026</span>
+</h1>
+
+<p>
+APERTURA · 6 EQUIPOS · 3 FECHAS JUGADAS
+</p>
+
+</section>
+
+
+<!-- EQUIPOS -->
+
+<section class="section">
+
+<h2>⚽ Equipos participantes</h2>
+
+<p class="lead">
+Los 6 equipos de la temporada 2026.
+</p>
+
+<div class="team-grid">
+
+<div class="team-card">
+<div class="logo">LP</div>
+<b>LA PLAZA</b>
+</div>
+
+<div class="team-card">
+<div class="logo">SF</div>
+<b>SAN FRANCISCO</b>
+</div>
+
+<div class="team-card">
+<div class="logo">SJ</div>
+<b>SAN JUAN</b>
+</div>
+
+<div class="team-card">
+<div class="logo">CC</div>
+<b>CHILE CHICO</b>
+</div>
+
+<div class="team-card">
+<div class="logo">PV</div>
+<b>PROGRESO DEL VALLE</b>
+</div>
+
+<div class="team-card">
+<div class="logo">SM</div>
+<b>SANTA MARÍA</b>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- TABLA -->
+
+<section class="section">
+
+<h2>🏆 Tabla de posiciones</h2>
+
+<p class="lead">
+Clasificación del campeonato.
+</p>
+
+<div class="tabs">
+
+<button class="tab active" onclick="tab('ap')">
+APERTURA
+</button>
+
+<button class="tab" onclick="tab('cl')">
+CLAUSURA
+</button>
+
+<button class="tab" onclick="tab('ac')">
+ACUMULADA
+</button>
+
+</div>
+
+
+<div id="tab-ap">
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+<tr>
+<th>POS.</th>
+<th>EQUIPO</th>
+<th>PJ</th>
+<th>PG</th>
+<th>PE</th>
+<th>PP</th>
+<th>PTS</th>
+<th>GF</th>
+<th>GC</th>
+<th>DF</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+<td class="rank">🥇 1</td>
+<td class="club">SAN FRANCISCO</td>
+<td>3</td>
+<td>3</td>
+<td>0</td>
+<td>0</td>
+<td><b>9</b></td>
+<td>9</td>
+<td>1</td>
+<td>+8</td>
+</tr>
+
+<tr>
+<td class="rank">🥈 2</td>
+<td class="club">SAN JUAN</td>
+<td>3</td>
+<td>2</td>
+<td>1</td>
+<td>0</td>
+<td><b>7</b></td>
+<td>6</td>
+<td>2</td>
+<td>+4</td>
+</tr>
+
+<tr>
+<td class="rank">🥉 3</td>
+<td class="club">LA PLAZA</td>
+<td>3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td><b>4</b></td>
+<td>3</td>
+<td>3</td>
+<td>0</td>
+</tr>
+
+<tr>
+<td class="rank">4</td>
+<td class="club">PROGRESO DEL VALLE</td>
+<td>3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td><b>4</b></td>
+<td>4</td>
+<td>6</td>
+<td>-2</td>
+</tr>
+
+<tr>
+<td class="rank">5</td>
+<td class="club">CHILE CHICO</td>
+<td>3</td>
+<td>0</td>
+<td>1</td>
+<td>2</td>
+<td><b>1</b></td>
+<td>3</td>
+<td>7</td>
+<td>-4</td>
+</tr>
+
+<tr>
+<td class="rank">6</td>
+<td class="club">SANTA MARÍA</td>
+<td>3</td>
+<td>0</td>
+<td>0</td>
+<td>3</td>
+<td><b>0</b></td>
+<td>2</td>
+<td>8</td>
+<td>-6</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+<div id="tab-cl" class="hidden">
+
+<div class="notice">
+🔒 CLAUSURA todavía no ha comenzado.
+<br><br>
+Los resultados aparecerán aquí cuando se jueguen las fechas.
+</div>
+
+</div>
+
+
+<div id="tab-ac" class="hidden">
+
+<div class="notice">
+🏆 TABLA ACUMULADA
+<br><br>
+La acumulada sumará automáticamente APERTURA + CLAUSURA.
+</div>
+
+</div>
+
+</section>
+
+
+<!-- RESULTADOS -->
+
+<section class="section">
+
+<h2>📅 Resultados y próximas fechas</h2>
+
+<p class="lead">
+APERTURA 2026
+</p>
+
+
+<h3>FECHA 1</h3>
+
+<div class="match-grid">
+
+<div class="match-card">
+<div class="match-date">FINALIZADO</div>
+<div class="match-teams">
+<div class="match-team">CHILE CHICO</div>
+<div class="score">0 - 1</div>
+<div class="match-team">SAN JUAN</div>
+</div>
+</div>
+
+<div class="match-card">
+<div class="match-date">FINALIZADO</div>
+<div class="match-teams">
+<div class="match-team">PROGRESO DEL VALLE</div>
+<div class="score">3 - 1</div>
+<div class="match-team">SANTA MARÍA</div>
+</div>
+</div>
+
+<div class="match-card">
+<div class="match-date">FINALIZADO</div>
+<div class="match-teams">
+<div class="match-team">LA PLAZA</div>
+<div class="score">0 - 1</div>
+<div class="match-team">SAN FRANCISCO</div>
+</div>
+</div>
+
+</div>
+
+
+<h3>FECHA 2</h3>
+
+<div class="match-grid">
+
+<div class="match-card">
+<div class="match-date">FINALIZADO</div>
+<div class="match-teams">
+<div class="match-team">LA PLAZA</div>
+<div class="score">1 - 0</div>
+<div class="match-team">SANTA MARÍA</div>
+</div>
+</div>
+
+<div class="match-card">
+<div class="match-date">FINALIZADO</div>
+<div class="match-teams">
+<div class="match-team">SAN JUAN</div>
+<div class="score">1 - 1</div>
+<div class="match-team">PROGRESO DEL VALLE</div>
+</div>
+</div>
+
+<div class="match-card">
+<div class="match-date">FINALIZADO</div>
+<div class="match-teams">
+<div class="match-team">CHILE CHICO</div>
+<div class="score">1 - 4</div>
+<div class="match-team">SAN FRANCISCO</div>
+</div>
+</div>
+
+</div>
+
+
+<h3>FECHA 3</h3>
+
+<div class="match-grid">
+
+<div class="match-card">
+<div class="match-date">FINALIZADO</div>
+<div class="match-teams">
+<div class="match-team">SAN FRANCISCO</div>
+<div class="score">4 - 0</div>
+<div class="match-team">PROGRESO DEL VALLE</div>
+</div>
+</div>
+
+<div class="match-card">
+<div class="match-date">FINALIZADO</div>
+<div class="match-teams">
+<div class="match-team">LA PLAZA</div>
+<div class="score">2 - 2</div>
+<div class="match-team">CHILE CHICO</div>
+</div>
+</div>
+
+<div class="match-card">
+<div class="match-date">FINALIZADO</div>
+<div class="match-teams">
+<div class="match-team">SAN JUAN</div>
+<div class="score">4 - 1</div>
+<div class="match-team">SANTA MARÍA</div>
+</div>
+</div>
+
+</div>
+
+
+<h3>FECHA 4 — PRÓXIMA</h3>
+
+<div class="match-grid">
+
+<div class="match-card future">
+
+<div class="match-date">
+PRÓXIMO PARTIDO
+</div>
+
+<div class="match-teams">
+<div class="match-team">
+LA PLAZA
+</div>
+
+<div class="score">
+VS
+</div>
+
+<div class="match-team">
+SAN JUAN
+</div>
+</div>
+
+<button onclick="alert('Pronósticos disponibles mientras la fecha esté abierta.')">
+🔮 PRONOSTICAR
+</button>
+
+</div>
+
+
+<div class="match-card future">
+
+<div class="match-date">
+PRÓXIMO PARTIDO
+</div>
+
+<div class="match-teams">
+<div class="match-team">
+SAN FRANCISCO
+</div>
+
+<div class="score">
+VS
+</div>
+
+<div class="match-team">
+SANTA MARÍA
+</div>
+</div>
+
+<button onclick="alert('Pronósticos disponibles mientras la fecha esté abierta.')">
+🔮 PRONOSTICAR
+</button>
+
+</div>
+
+
+<div class="match-card future">
+
+<div class="match-date">
+PRÓXIMO PARTIDO
+</div>
+
+<div class="match-teams">
+<div class="match-team">
+CHILE CHICO
+</div>
+
+<div class="score">
+VS
+</div>
+
+<div class="match-team">
+PROGRESO DEL VALLE
+</div>
+</div>
+
+<button onclick="alert('Pronósticos disponibles mientras la fecha esté abierta.')">
+🔮 PRONOSTICAR
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- PRONOSTICOS -->
+
+<section class="section">
+
+<h2>🔮 Pronósticos</h2>
+
+<p class="lead">
+Los pronósticos estarán disponibles mientras la fecha se encuentre abierta.
+</p>
+
+<div class="stats">
+
+<div class="stat">
+<strong>FECHA 4</strong>
+<span>Próxima fecha</span>
+</div>
+
+<div class="stat">
+<strong>🔓</strong>
+<span>Pronósticos abiertos</span>
+</div>
+
+<div class="stat">
+<strong>6</strong>
+<span>Equipos participantes</span>
+</div>
+
+<div class="stat">
+<strong>🏆</strong>
+<span>Ranking de pronosticadores</span>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ESTADISTICAS -->
+
+<section class="section">
+
+<h2>📊 Estadísticas</h2>
+
+<div class="stats">
+
+<div class="stat">
+<strong>⚽</strong>
+<span>Tabla de goleadores</span>
+</div>
+
+<div class="stat">
+<strong>🟨</strong>
+<span>Tarjetas amarillas</span>
+</div>
+
+<div class="stat">
+<strong>🟥</strong>
+<span>Tarjetas rojas</span>
+</div>
+
+<div class="stat">
+<strong>🏆</strong>
+<span>Historial de campeones</span>
+</div>
+
+</div>
+
+</section>
+
+
+</main>
+
+<footer>
+INTERBARRIOS EL ARENAL · TEMPORADA 2026
+</footer>
+
+</div>
+
+
+<script>
+
+function showPage(id){
+
+document.querySelectorAll('.page')
+.forEach(x=>x.classList.remove('active'));
+
+document.getElementById(id)
+.classList.add('active');
+
+window.scrollTo(0,0);
+
+}
+
+
+function tab(id){
+
+['ap','cl','ac'].forEach(x=>{
+
+document
+.getElementById('tab-'+x)
+.classList
+.toggle('hidden',x!==id);
+
+});
+
+document
+.querySelectorAll('.tab')
+.forEach((x,i)=>{
+
+x.classList.toggle(
+'active',
+['ap','cl','ac'][i]===id
+);
+
+});
+
+}
+
+</script>
+
+</body>
+</html>
