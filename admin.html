@@ -666,6 +666,10 @@ tr:last-child td{
         No necesitas modificar el código cuando llegue una nueva fecha.
     </p>
 
+    <div class="status warning" style="margin-top:0;margin-bottom:15px;">
+        🗓️ Fixture completo: 10 fechas · 30 partidos. Se crea automáticamente solo lo que falte.
+    </div>
+
     <div class="section-tabs">
 
         <button
@@ -1221,6 +1225,7 @@ const equipos = [
 
 
 let torneoActual = "APERTURA";
+let partidoEditandoId = null;
 
 
 /* =========================================================
@@ -1462,6 +1467,7 @@ function cerrarSesion(){
 function cambiarTorneo(torneo,boton){
 
     torneoActual = torneo;
+    partidoEditandoId = null;
 
     document
         .querySelectorAll(".section-tab")
@@ -1482,17 +1488,121 @@ function cambiarTorneo(torneo,boton){
 
 async function cargarTodo(){
 
+    // Crea automáticamente el fixture completo de 10 fechas
+    // sin duplicar partidos que ya existan.
+    await asegurarFixtureCompleto();
+
     await cargarPartidos();
-
     await cargarPronosticos();
-
     await cargarGoleadores();
-
     await cargarTarjetas();
-
     actualizarContadores();
-
 }
+
+
+/* =========================================================
+   FIXTURE COMPLETO APERTURA + CLAUSURA
+========================================================= */
+
+const fixtureCompleto = [
+    // APERTURA
+    ["APERTURA",1,"CHILE CHICO","SAN JUAN"],
+    ["APERTURA",1,"PROGRESO DEL VALLE","SANTA MARÍA"],
+    ["APERTURA",1,"LA PLAZA","SAN FRANCISCO"],
+
+    ["APERTURA",2,"LA PLAZA","SANTA MARÍA"],
+    ["APERTURA",2,"SAN JUAN","PROGRESO DEL VALLE"],
+    ["APERTURA",2,"CHILE CHICO","SAN FRANCISCO"],
+
+    ["APERTURA",3,"SAN FRANCISCO","PROGRESO DEL VALLE"],
+    ["APERTURA",3,"LA PLAZA","CHILE CHICO"],
+    ["APERTURA",3,"SAN JUAN","SANTA MARÍA"],
+
+    ["APERTURA",4,"LA PLAZA","SAN JUAN"],
+    ["APERTURA",4,"SAN FRANCISCO","SANTA MARÍA"],
+    ["APERTURA",4,"CHILE CHICO","PROGRESO DEL VALLE"],
+
+    ["APERTURA",5,"SANTA MARÍA","CHILE CHICO"],
+    ["APERTURA",5,"PROGRESO DEL VALLE","LA PLAZA"],
+    ["APERTURA",5,"SAN FRANCISCO","SAN JUAN"],
+
+    // CLAUSURA — segunda vuelta
+    ["CLAUSURA",6,"SAN JUAN","CHILE CHICO"],
+    ["CLAUSURA",6,"SANTA MARÍA","PROGRESO DEL VALLE"],
+    ["CLAUSURA",6,"SAN FRANCISCO","LA PLAZA"],
+
+    ["CLAUSURA",7,"SANTA MARÍA","LA PLAZA"],
+    ["CLAUSURA",7,"PROGRESO DEL VALLE","SAN JUAN"],
+    ["CLAUSURA",7,"SAN FRANCISCO","CHILE CHICO"],
+
+    ["CLAUSURA",8,"PROGRESO DEL VALLE","SAN FRANCISCO"],
+    ["CLAUSURA",8,"CHILE CHICO","LA PLAZA"],
+    ["CLAUSURA",8,"SANTA MARÍA","SAN JUAN"],
+
+    ["CLAUSURA",9,"SAN JUAN","LA PLAZA"],
+    ["CLAUSURA",9,"SANTA MARÍA","SAN FRANCISCO"],
+    ["CLAUSURA",9,"PROGRESO DEL VALLE","CHILE CHICO"],
+
+    ["CLAUSURA",10,"CHILE CHICO","SANTA MARÍA"],
+    ["CLAUSURA",10,"LA PLAZA","PROGRESO DEL VALLE"],
+    ["CLAUSURA",10,"SAN JUAN","SAN FRANCISCO"]
+];
+
+async function asegurarFixtureCompleto(){
+    try{
+        const partidos = await obtenerPartidos();
+        const existentes = new Set(
+            partidos.map(p =>
+                `${p.torneo || "APERTURA"}|${p.fecha}|${p.local}|${p.visitante}`
+            )
+        );
+
+        const faltantes = fixtureCompleto.filter(x =>
+            !existentes.has(`${x[0]}|${x[1]}|${x[2]}|${x[3]}`)
+        );
+
+        if(!faltantes.length) return;
+
+        for(const [torneo,fecha,local,visitante] of faltantes){
+            const respuesta = await fetch(
+                `${SUPABASE_URL}/rest/v1/partidos`,
+                {
+                    method:"POST",
+                    headers:{
+                        ...headersAdmin(),
+                        "Prefer":"return=minimal"
+                    },
+                    body:JSON.stringify({
+                        torneo,
+                        fecha,
+                        local,
+                        visitante,
+                        goles_local:0,
+                        goles_visitante:0,
+                        estado:"Borrador",
+                        pronosticos_abiertos:false,
+                        publicado:false
+                    })
+                }
+            );
+
+            if(!respuesta.ok){
+                throw new Error(await respuesta.text());
+            }
+        }
+
+        console.log(`Fixture creado: ${faltantes.length} partido(s).`);
+
+    }catch(error){
+        console.error("Error creando fixture:",error);
+        mensaje(
+            "partidoMessage",
+            "⚠️ No se pudo completar automáticamente el fixture. Revisa Supabase.",
+            "warning"
+        );
+    }
+}
+
 
 
 /* =========================================================
@@ -1707,108 +1817,86 @@ async function obtenerPartido(id){
 
 async function guardarBorrador(){
 
-    const fecha =
-        Number(
-            document.getElementById("fechaPartido").value
-        );
-
-    const local =
-        document.getElementById("local").value;
-
-    const visitante =
-        document.getElementById("visitante").value;
-
-    const golesLocal =
-        Number(
-            document.getElementById("golesLocal").value || 0
-        );
-
-    const golesVisita =
-        Number(
-            document.getElementById("golesVisita").value || 0
-        );
-
+    const fecha = Number(document.getElementById("fechaPartido").value);
+    const local = document.getElementById("local").value;
+    const visitante = document.getElementById("visitante").value;
+    const golesLocal = Number(document.getElementById("golesLocal").value || 0);
+    const golesVisita = Number(document.getElementById("golesVisita").value || 0);
 
     if(local === visitante){
-
-        mensaje(
-            "partidoMessage",
-            "⚠️ El equipo local y visitante no pueden ser iguales.",
-            "warning"
-        );
-
+        mensaje("partidoMessage","⚠️ El equipo local y visitante no pueden ser iguales.","warning");
         return;
     }
 
-
     try{
+        let respuesta;
 
-        const respuesta = await fetch(
-            `${SUPABASE_URL}/rest/v1/partidos`,
-            {
-                method:"POST",
-                headers:{
-                    ...headersAdmin(),
-                    "Prefer":"return=representation"
-                },
-                body:JSON.stringify({
-
-                    fecha:fecha,
-
-                    torneo:torneoActual,
-
-                    local:local,
-
-                    visitante:visitante,
-
-                    goles_local:golesLocal,
-
-                    goles_visitante:golesVisita,
-
-                    estado:"Borrador",
-
-                    pronosticos_abiertos:false,
-
-                    publicado:false
-
-                })
-            }
-        );
-
-
-        if(!respuesta.ok){
-
-            throw new Error(
-                await respuesta.text()
+        if(partidoEditandoId){
+            respuesta = await fetch(
+                `${SUPABASE_URL}/rest/v1/partidos?id=eq.${partidoEditandoId}`,
+                {
+                    method:"PATCH",
+                    headers:{
+                        ...headersAdmin(),
+                        "Prefer":"return=minimal"
+                    },
+                    body:JSON.stringify({
+                        fecha,
+                        torneo:torneoActual,
+                        local,
+                        visitante,
+                        goles_local:golesLocal,
+                        goles_visitante:golesVisita,
+                        estado:"Borrador",
+                        pronosticos_abiertos:false,
+                        publicado:false
+                    })
+                }
+            );
+        }else{
+            respuesta = await fetch(
+                `${SUPABASE_URL}/rest/v1/partidos`,
+                {
+                    method:"POST",
+                    headers:{
+                        ...headersAdmin(),
+                        "Prefer":"return=minimal"
+                    },
+                    body:JSON.stringify({
+                        fecha,
+                        torneo:torneoActual,
+                        local,
+                        visitante,
+                        goles_local:golesLocal,
+                        goles_visitante:golesVisita,
+                        estado:"Borrador",
+                        pronosticos_abiertos:false,
+                        publicado:false
+                    })
+                }
             );
         }
 
+        if(!respuesta.ok) throw new Error(await respuesta.text());
 
         mensaje(
             "partidoMessage",
-            `✅ Partido guardado como borrador en ${torneoActual}, Fecha ${fecha}.`,
+            partidoEditandoId
+                ? `✅ Partido actualizado en ${torneoActual}, Fecha ${fecha}.`
+                : `✅ Partido guardado como borrador en ${torneoActual}, Fecha ${fecha}.`,
             "success"
         );
 
-
+        partidoEditandoId = null;
         cargarPartidos();
-
         actualizarContadores();
 
-
     }catch(error){
-
         console.error(error);
-
-        mensaje(
-            "partidoMessage",
-            "❌ No se pudo guardar el partido. Revisa la estructura de la tabla.",
-            "error"
-        );
-
+        mensaje("partidoMessage","❌ No se pudo guardar el partido. Revisa la estructura de la tabla.","error");
     }
-
 }
+
 
 
 /* =========================================================
@@ -2267,64 +2355,39 @@ async function publicarPartido(id){
 ========================================================= */
 
 async function cargarPartidoEnFormulario(id){
-
     try{
+        const partido = await obtenerPartido(id);
 
-        const partido =
-            await obtenerPartido(id);
+        partidoEditandoId = id;
+        torneoActual = partido.torneo || "APERTURA";
 
+        document.getElementById("fechaPartido").value = partido.fecha;
+        document.getElementById("local").value = partido.local;
+        document.getElementById("visitante").value = partido.visitante;
+        document.getElementById("golesLocal").value = partido.goles_local ?? 0;
+        document.getElementById("golesVisita").value = partido.goles_visitante ?? 0;
+        document.getElementById("estadoPartido").value = partido.estado || "Borrador";
 
-        torneoActual =
-            partido.torneo || "APERTURA";
-
-
-        document
-            .getElementById("fechaPartido")
-            .value = partido.fecha;
-
-
-        document
-            .getElementById("local")
-            .value = partido.local;
-
-
-        document
-            .getElementById("visitante")
-            .value = partido.visitante;
-
-
-        document
-            .getElementById("golesLocal")
-            .value =
-                partido.goles_local ?? 0;
-
-
-        document
-            .getElementById("golesVisita")
-            .value =
-                partido.goles_visitante ?? 0;
-
-
-        document
-            .getElementById("estadoPartido")
-            .value =
-                partido.estado || "Borrador";
-
+        document.querySelectorAll(".section-tab").forEach(x => x.classList.remove("active"));
+        const boton = [...document.querySelectorAll(".section-tab")].find(x =>
+            x.textContent.trim() === torneoActual
+        );
+        if(boton) boton.classList.add("active");
 
         mensaje(
             "partidoMessage",
-            "✏️ Datos cargados en el formulario. Para editar, usa la opción de guardado correspondiente.",
+            `✏️ Editando ${torneoActual} · Fecha ${partido.fecha}: ${partido.local} vs ${partido.visitante}. Pulsa GUARDAR BORRADOR para actualizarlo.`,
             "warning"
         );
 
+        window.scrollTo({top:document.querySelector(".panel.full").offsetTop - 80,behavior:"smooth"});
 
     }catch(error){
-
         console.error(error);
-
+        mensaje("partidoMessage","❌ No se pudo cargar el partido para editar.","error");
     }
-
 }
+
 
 
 /* =========================================================
