@@ -43,10 +43,17 @@ function headersPublicos(extra = {}) {
 }
 
 async function supabaseGet(tabla, query = "") {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${tabla}${query}`, {
-    headers: headersPublicos()
+  const separador = query ? (query.includes("?") ? "&" : "?") : "?";
+  const url = `${SUPABASE_URL}/rest/v1/${tabla}${query}${separador}_t=${Date.now()}`;
+  const r = await fetch(url, {
+    method: "GET",
+    cache: "no-store",
+    headers: { ...headersPublicos(), "Cache-Control":"no-cache" }
   });
-  if (!r.ok) throw new Error(`${tabla}: HTTP ${r.status}`);
+  if (!r.ok) {
+    const detalle = await r.text().catch(()=>"");
+    throw new Error(`${tabla}: HTTP ${r.status} ${detalle}`);
+  }
   return await r.json();
 }
 
@@ -305,9 +312,9 @@ async function cargarRanking(){
 async function cargarDatosPublicos(){
   try{
     const [partidos,goleadores,tarjetas]=await Promise.all([
-      supabaseGet("partidos","?select=*&order=fecha.asc,created_at.asc"),
-      supabaseGet("goleadores","?select=*&order=goles.desc"),
-      supabaseGet("tarjetas","?select=*&order=tipo.asc,nombre.asc")
+      supabaseGet("partidos","?select=id,created_at,fecha,local,visitante,goles_local,goles_visitante,estado,pronosticos_abiertos,publicado,torneo&publicado=eq.true&order=fecha.asc,created_at.asc"),
+      supabaseGet("goleadores","?select=id,nombre,equipo,goles,publicado&publicado=eq.true&order=goles.desc"),
+      supabaseGet("tarjetas","?select=id,nombre,equipo,tipo,cantidad,publicado&publicado=eq.true&order=tipo.asc,nombre.asc")
     ]);
     partidosPublicos=partidos;
     goleadoresPublicos=goleadores;
@@ -319,8 +326,14 @@ async function cargarDatosPublicos(){
     cargarRanking();
   }catch(e){
     console.error("Error cargando datos públicos:",e);
-    const cuerpos=["ap-body","cl-body","ac-body"];
-    cuerpos.forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<tr><td colspan="10">No se pudieron cargar los datos.</td></tr>';});
+    // Si la API falla, mantenemos la tabla visible en cero y mostramos el error de forma discreta.
+    partidosPublicos=[];
+    goleadoresPublicos=[];
+    tarjetasPublicas=[];
+    renderTables();
+    renderResultados();
+    renderPronosticos();
+    renderEstadisticas();
   }
 }
 
