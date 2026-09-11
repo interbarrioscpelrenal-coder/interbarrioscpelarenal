@@ -1033,7 +1033,7 @@ async function cargarDatosPublicos(){
       supabaseGet(
         "tarjetas",
         "?select=id,nombre,equipo,tipo,cantidad,publicado&publicado=eq.true&order=tipo.asc,nombre.asc"
-      )
+      ),
 
       supabaseGet(
         "campeones_historicos",
