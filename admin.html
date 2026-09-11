@@ -1024,7 +1024,115 @@ tr:last-child td{
 
 </section>
 
+<!-- =========================
+     CAMPEONES HISTÓRICOS
+========================= -->
 
+<section class="panel full">
+
+    <h2>🏆 Campeones históricos</h2>
+
+    <p class="panel-description">
+        Registra y publica el campeón de cada edición del campeonato.
+        También puedes indicar cuando no se disputó torneo.
+    </p>
+
+    <div class="form-grid">
+
+        <div class="field">
+
+            <label>AÑO DE LA EDICIÓN</label>
+
+            <input
+                id="campeonAnio"
+                type="number"
+                min="1900"
+                max="2100"
+                placeholder="Ejemplo: 2025"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>CAMPEÓN</label>
+
+            <select id="campeonEquipo">
+
+                <option value="SAN JUAN">
+                    🏆 SAN JUAN
+                </option>
+
+                <option value="CHILE CHICO">
+                    🏆 CHILE CHICO
+                </option>
+
+                <option value="PROGRESO DEL VALLE">
+                    🏆 PROGRESO DEL VALLE
+                </option>
+
+                <option value="SANTA MARÍA">
+                    🏆 SANTA MARÍA
+                </option>
+
+                <option value="LA PLAZA">
+                    🏆 LA PLAZA
+                </option>
+
+                <option value="SAN FRANCISCO">
+                    🏆 SAN FRANCISCO
+                </option>
+
+                <option value="NO SE DISPUTÓ TORNEO">
+                    ⚪ NO SE DISPUTÓ TORNEO
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <div class="buttons">
+
+        <button
+            class="btn btn-yellow"
+            onclick="guardarCampeon()"
+        >
+            🏆 PUBLICAR CAMPEÓN
+        </button>
+
+        <button
+            class="btn btn-dark"
+            onclick="cancelarEdicionCampeon()"
+        >
+            ✖️ CANCELAR
+        </button>
+
+    </div>
+
+
+    <div id="campeonMessage" class="status">
+        Ingresa el año y selecciona el campeón.
+    </div>
+
+
+    <h3 style="margin-top:30px">
+        Historial registrado
+    </h3>
+
+
+    <div id="listaCampeones" class="list">
+
+        <div class="empty">
+            Cargando campeones...
+        </div>
+
+    </div>
+
+</section>
 <!-- =========================
      TARJETAS
 ========================= -->
@@ -3466,7 +3574,529 @@ async function actualizarContadores(){
 
 }
 
+/* =========================================================
+   CAMPEONES HISTÓRICOS
+========================================================= */
 
+let campeonEditandoId = null;
+
+
+/* =========================================================
+   CARGAR CAMPEONES
+========================================================= */
+
+async function cargarCampeones(){
+
+    try{
+
+        const respuesta = await fetch(
+            `${SUPABASE_URL}/rest/v1/campeones_historicos?select=*&order=anio.desc`,
+            {
+                headers:headersAdmin()
+            }
+        );
+
+
+        if(!respuesta.ok){
+
+            throw new Error(
+                await respuesta.text()
+            );
+
+        }
+
+
+        const datos = await respuesta.json();
+
+
+        const contenedor =
+            document.getElementById("listaCampeones");
+
+
+        if(!datos.length){
+
+            contenedor.innerHTML = `
+                <div class="empty">
+                    No hay campeones históricos registrados.
+                </div>
+            `;
+
+            return;
+        }
+
+
+        contenedor.innerHTML =
+            datos.map(c => {
+
+                const esNoDisputado =
+                    c.campeon === "NO SE DISPUTÓ TORNEO";
+
+
+                return `
+
+                <div class="list-item">
+
+                    <div class="list-main">
+
+                        <strong>
+                            ${esNoDisputado ? "⚪" : "🏆"}
+                            ${escapar(c.anio)}
+                            ·
+                            ${escapar(c.campeon)}
+                        </strong>
+
+                        <span>
+                            ${
+                                c.publicado
+                                ? "🌐 Publicado en la página pública"
+                                : "📝 Borrador"
+                            }
+                        </span>
+
+                    </div>
+
+
+                    <div class="list-actions">
+
+                        <button
+                            onclick="editarCampeon(${c.id})"
+                        >
+                            ✏️
+                        </button>
+
+
+                        ${
+                            !c.publicado
+                            ? `
+                            <button
+                                onclick="publicarCampeon(${c.id})"
+                            >
+                                🌐
+                            </button>
+                            `
+                            : ""
+                        }
+
+
+                        <button
+                            onclick="eliminarCampeon(${c.id})"
+                            style="color:#ff7777"
+                        >
+                            🗑️
+                        </button>
+
+                    </div>
+
+                </div>
+
+                `;
+
+            }).join("");
+
+
+    }catch(error){
+
+        console.error(
+            "Error cargando campeones:",
+            error
+        );
+
+
+        document
+            .getElementById("listaCampeones")
+            .innerHTML = `
+                <div class="empty">
+                    ❌ No se pudieron cargar los campeones.
+                </div>
+            `;
+
+    }
+
+}
+
+
+/* =========================================================
+   GUARDAR / EDITAR CAMPEÓN
+========================================================= */
+
+async function guardarCampeon(){
+
+    const anio =
+        Number(
+            document
+                .getElementById("campeonAnio")
+                .value
+        );
+
+
+    const campeon =
+        document
+            .getElementById("campeonEquipo")
+            .value;
+
+
+    if(!anio){
+
+        mensaje(
+            "campeonMessage",
+            "⚠️ Escribe el año de la edición.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+
+    if(anio < 1900 || anio > 2100){
+
+        mensaje(
+            "campeonMessage",
+            "⚠️ Escribe un año válido.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+
+    try{
+
+        let respuesta;
+
+
+        if(campeonEditandoId){
+
+            respuesta = await fetch(
+                `${SUPABASE_URL}/rest/v1/campeones_historicos?id=eq.${campeonEditandoId}`,
+                {
+                    method:"PATCH",
+                    headers:{
+                        ...headersAdmin(),
+                        "Prefer":"return=minimal"
+                    },
+                    body:JSON.stringify({
+                        anio:anio,
+                        campeon:campeon,
+                        publicado:true
+                    })
+                }
+            );
+
+        }else{
+
+            respuesta = await fetch(
+                `${SUPABASE_URL}/rest/v1/campeones_historicos`,
+                {
+                    method:"POST",
+                    headers:{
+                        ...headersAdmin(),
+                        "Prefer":"return=minimal"
+                    },
+                    body:JSON.stringify({
+                        anio:anio,
+                        campeon:campeon,
+                        publicado:true
+                    })
+                }
+            );
+
+        }
+
+
+        if(!respuesta.ok){
+
+            throw new Error(
+                await respuesta.text()
+            );
+
+        }
+
+
+        mensaje(
+            "campeonMessage",
+            campeonEditandoId
+                ? "✅ Campeón histórico actualizado y publicado."
+                : "🏆 Campeón histórico publicado correctamente.",
+            "success"
+        );
+
+
+        campeonEditandoId = null;
+
+
+        document
+            .getElementById("campeonAnio")
+            .value = "";
+
+
+        document
+            .getElementById("campeonEquipo")
+            .value = "SAN JUAN";
+
+
+        cargarCampeones();
+
+
+    }catch(error){
+
+        console.error(
+            "Error guardando campeón:",
+            error
+        );
+
+
+        mensaje(
+            "campeonMessage",
+            "❌ No se pudo guardar el campeón. Revisa Supabase.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   EDITAR CAMPEÓN
+========================================================= */
+
+async function editarCampeon(id){
+
+    try{
+
+        const respuesta = await fetch(
+            `${SUPABASE_URL}/rest/v1/campeones_historicos?id=eq.${id}&select=*`,
+            {
+                headers:headersAdmin()
+            }
+        );
+
+
+        if(!respuesta.ok){
+
+            throw new Error(
+                await respuesta.text()
+            );
+
+        }
+
+
+        const datos = await respuesta.json();
+
+
+        if(!datos.length){
+
+            mensaje(
+                "campeonMessage",
+                "⚠️ No se encontró el campeón.",
+                "warning"
+            );
+
+            return;
+
+        }
+
+
+        const campeon = datos[0];
+
+
+        campeonEditandoId = id;
+
+
+        document
+            .getElementById("campeonAnio")
+            .value = campeon.anio;
+
+
+        document
+            .getElementById("campeonEquipo")
+            .value = campeon.campeon;
+
+
+        mensaje(
+            "campeonMessage",
+            `✏️ Editando ${campeon.anio} · ${campeon.campeon}. Pulsa PUBLICAR CAMPEÓN para guardar los cambios.`,
+            "warning"
+        );
+
+
+        const panel =
+            document
+                .getElementById("campeonAnio")
+                .closest(".panel");
+
+
+        window.scrollTo({
+            top:panel.offsetTop - 80,
+            behavior:"smooth"
+        });
+
+
+    }catch(error){
+
+        console.error(error);
+
+
+        mensaje(
+            "campeonMessage",
+            "❌ No se pudo cargar el campeón.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   CANCELAR EDICIÓN
+========================================================= */
+
+function cancelarEdicionCampeon(){
+
+    campeonEditandoId = null;
+
+
+    document
+        .getElementById("campeonAnio")
+        .value = "";
+
+
+    document
+        .getElementById("campeonEquipo")
+        .value = "SAN JUAN";
+
+
+    mensaje(
+        "campeonMessage",
+        "Edición cancelada.",
+        ""
+    );
+
+}
+
+
+/* =========================================================
+   PUBLICAR CAMPEÓN EXISTENTE
+========================================================= */
+
+async function publicarCampeon(id){
+
+    if(!confirm(
+        "¿Publicar este campeón en la página pública?"
+    )) return;
+
+
+    try{
+
+        const respuesta = await fetch(
+            `${SUPABASE_URL}/rest/v1/campeones_historicos?id=eq.${id}`,
+            {
+                method:"PATCH",
+                headers:{
+                    ...headersAdmin(),
+                    "Prefer":"return=minimal"
+                },
+                body:JSON.stringify({
+                    publicado:true
+                })
+            }
+        );
+
+
+        if(!respuesta.ok){
+
+            throw new Error(
+                await respuesta.text()
+            );
+
+        }
+
+
+        mensaje(
+            "campeonMessage",
+            "🌐 Campeón publicado en la página pública.",
+            "success"
+        );
+
+
+        cargarCampeones();
+
+
+    }catch(error){
+
+        console.error(error);
+
+
+        mensaje(
+            "campeonMessage",
+            "❌ No se pudo publicar el campeón.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ELIMINAR CAMPEÓN
+========================================================= */
+
+async function eliminarCampeon(id){
+
+    if(!confirm(
+        "¿Eliminar este campeón histórico?\n\n" +
+        "Esta acción no se puede deshacer."
+    )) return;
+
+
+    try{
+
+        const respuesta = await fetch(
+            `${SUPABASE_URL}/rest/v1/campeones_historicos?id=eq.${id}`,
+            {
+                method:"DELETE",
+                headers:headersAdmin()
+            }
+        );
+
+
+        if(!respuesta.ok){
+
+            throw new Error(
+                await respuesta.text()
+            );
+
+        }
+
+
+        mensaje(
+            "campeonMessage",
+            "🗑️ Campeón eliminado correctamente.",
+            "success"
+        );
+
+
+        cargarCampeones();
+
+
+    }catch(error){
+
+        console.error(error);
+
+
+        mensaje(
+            "campeonMessage",
+            "❌ No se pudo eliminar el campeón.",
+            "error"
+        );
+
+    }
+
+}
 /* =========================================================
    INICIO
 ========================================================= */
