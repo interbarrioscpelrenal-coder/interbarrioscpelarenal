@@ -1036,9 +1036,9 @@ async function cargarDatosPublicos(){
       )
 
       supabaseGet(
-  "campeones_historicos",
-  "?select=id,anio,campeon,publicado&publicado=eq.true&order=anio.desc"
-)
+        "campeones_historicos",
+        "?select=id,anio,campeon,publicado&publicado=eq.true&order=anio.desc"
+      )
       
     ]);
 
