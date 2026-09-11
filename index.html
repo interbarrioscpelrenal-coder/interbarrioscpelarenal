@@ -831,7 +831,7 @@ function renderEstadisticas(){
     ${campeonesPublicos.map(c=>{
 
       const equipo=
-        String(c.equipo||"").trim().toUpperCase();
+  String(c.campeon||"").trim().toUpperCase();
 
       const escudo=
         ESCUDOS_CAMPEONES[equipo]||"";
