@@ -960,12 +960,18 @@ async function cargarDatosPublicos(){
         "?select=id,nombre,equipo,tipo,cantidad,publicado&publicado=eq.true&order=tipo.asc,nombre.asc"
       )
 
+      supabaseGet(
+  "campeones_historicos",
+  "?select=id,anio,equipo,publicado&publicado=eq.true&order=anio.desc"
+)
+      
     ]);
 
   const [
     rPartidos,
     rGoleadores,
     rTarjetas
+    rCampeones
   ]=resultados;
 
 
@@ -1053,7 +1059,27 @@ async function cargarDatosPublicos(){
     );
   }
 
+/* =====================================================
+   CAMPEONES HISTÓRICOS
+   ===================================================== */
 
+if(rCampeones.status==="fulfilled"){
+
+  campeonesPublicos=
+    Array.isArray(rCampeones.value)
+      ? rCampeones.value
+      : [];
+
+}else{
+
+  campeonesPublicos=[];
+
+  console.warn(
+    "⚠️ Campeones históricos públicos no disponibles:",
+    rCampeones.reason
+  );
+
+}
   /* =====================================================
      RENDERIZAR
      ===================================================== */
