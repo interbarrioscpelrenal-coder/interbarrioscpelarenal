@@ -3323,12 +3323,11 @@ async function cargarTarjetas(){
 
         const respuesta =
             await fetch(
-                `${SUPABASE_URL}/rest/v1/tarjetas?select=*&order=created_at.desc`,
+                `${SUPABASE_URL}/rest/v1/tarjetas?select=*&order=tipo.asc,nombre.asc`,
                 {
                     headers:headersAdmin()
                 }
             );
-
 
         if(!respuesta.ok){
 
@@ -3337,10 +3336,8 @@ async function cargarTarjetas(){
             );
         }
 
-
         const datos =
             await respuesta.json();
-
 
         const total =
             datos.reduce(
@@ -3349,16 +3346,13 @@ async function cargarTarjetas(){
                 0
             );
 
-
         document
             .getElementById("totalTarjetas")
             .textContent =
                 total;
 
-
         const contenedor =
             document.getElementById("listaTarjetas");
-
 
         if(!datos.length){
 
@@ -3370,7 +3364,6 @@ async function cargarTarjetas(){
 
             return;
         }
-
 
         contenedor.innerHTML =
             datos.map(t => `
@@ -3393,11 +3386,11 @@ async function cargarTarjetas(){
                             ·
                             ${t.tipo}
                             ·
-                            ${t.cantidad || 1}
+                            <strong>${t.cantidad || 1}</strong>
                             ${
                                 t.publicado
-                                ? "· 🌐 Publicada"
-                                : "· 📝 Borrador"
+                                ? " · 🌐 Publicada"
+                                : " · 📝 Borrador"
                             }
                         </span>
 
@@ -3406,7 +3399,25 @@ async function cargarTarjetas(){
                     <div class="list-actions">
 
                         <button
+                            type="button"
+                            onclick="cambiarTarjetas(${t.id},-1)"
+                            title="Restar 1 tarjeta"
+                        >
+                            ➖
+                        </button>
+
+                        <button
+                            type="button"
+                            onclick="cambiarTarjetas(${t.id},1)"
+                            title="Sumar 1 tarjeta"
+                        >
+                            ➕
+                        </button>
+
+                        <button
+                            type="button"
                             onclick="eliminarTarjeta(${t.id})"
+                            title="Eliminar tarjeta"
                         >
                             🗑️
                         </button>
@@ -3417,15 +3428,16 @@ async function cargarTarjetas(){
 
             `).join("");
 
-
     }catch(error){
 
-        console.error(error);
+        console.error(
+            "Error cargando tarjetas:",
+            error
+        );
 
     }
 
 }
-
 
 /* =========================================================
    GUARDAR TARJETA
