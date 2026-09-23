@@ -2953,7 +2953,7 @@ async function cargarGoleadores(){
                         <span>
                             ${escapar(g.equipo)}
                             ·
-                            ${g.goles} goles
+                            <strong>${g.goles}</strong> goles
                             ·
                             ${
                                 g.publicado
@@ -2964,10 +2964,29 @@ async function cargarGoleadores(){
 
                     </div>
 
+
                     <div class="list-actions">
 
                         <button
+                            type="button"
+                            onclick="cambiarGoles(${g.id},-1)"
+                            title="Restar 1 gol"
+                        >
+                            ➖
+                        </button>
+
+                        <button
+                            type="button"
+                            onclick="cambiarGoles(${g.id},1)"
+                            title="Sumar 1 gol"
+                        >
+                            ➕
+                        </button>
+
+                        <button
+                            type="button"
                             onclick="eliminarGoleador(${g.id})"
+                            title="Eliminar goleador"
                         >
                             🗑️
                         </button>
@@ -2981,12 +3000,14 @@ async function cargarGoleadores(){
 
     }catch(error){
 
-        console.error(error);
+        console.error(
+            "Error cargando goleadores:",
+            error
+        );
 
     }
 
 }
-
 
 /* =========================================================
    GUARDAR GOLEADOR
