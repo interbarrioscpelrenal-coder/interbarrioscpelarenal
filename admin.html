@@ -3838,6 +3838,224 @@ async function guardarCastigo(){
     }
 
 }
+    /* =========================================================
+   CARGAR CASTIGOS
+========================================================= */
+
+async function cargarCastigos(){
+
+    try{
+
+        const respuesta =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/castigos?select=*&order=id.desc`,
+                {
+                    headers:headersAdmin()
+                }
+            );
+
+        if(!respuesta.ok){
+
+            throw new Error(
+                await respuesta.text()
+            );
+        }
+
+        const datos =
+            await respuesta.json();
+
+        const contenedor =
+            document.getElementById("listaCastigos");
+
+
+        if(!datos.length){
+
+            contenedor.innerHTML = `
+                <div class="empty">
+                    No hay castigos registrados.
+                </div>
+            `;
+
+            return;
+        }
+
+
+        contenedor.innerHTML =
+            datos.map(c => `
+
+                <div class="list-item">
+
+                    <div class="list-main">
+
+                        <strong>
+                            🚫 ${escapar(c.nombre)}
+                        </strong>
+
+                        <span>
+                            ${escapar(c.equipo)}
+                            ·
+                            ${escapar(c.motivo)}
+                            ·
+                            ${c.torneo}
+                            ·
+                            SUSPENDIDO HASTA FECHA ${c.fecha_hasta}
+                            ${
+                                c.publicado
+                                ? " · 🌐 Publicado"
+                                : " · 📝 Borrador"
+                            }
+                        </span>
+
+                    </div>
+
+
+                    <div class="list-actions">
+
+                        <button
+                            type="button"
+                            onclick="eliminarCastigo(${c.id})"
+                            title="Eliminar castigo"
+                        >
+                            🗑️
+                        </button>
+
+                    </div>
+
+                </div>
+
+            `).join("");
+
+
+    }catch(error){
+
+        console.error(
+            "Error cargando castigos:",
+            error
+        );
+
+    }
+
+}
+    /* =========================================================
+   ELIMINAR CASTIGO
+========================================================= */
+
+async function eliminarCastigo(id){
+
+    if(!confirm("¿Eliminar este castigo?")){
+        return;
+    }
+
+    try{
+
+        const respuesta =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/castigos?id=eq.${id}`,
+                {
+                    method:"DELETE",
+                    headers:headersAdmin()
+                }
+            );
+
+        if(!respuesta.ok){
+
+            throw new Error(
+                await respuesta.text()
+            );
+        }
+
+        mensaje(
+            "castigoMessage",
+            "✅ Castigo eliminado correctamente.",
+            "success"
+        );
+
+        cargarCastigos();
+
+    }catch(error){
+
+        console.error(
+            "Error eliminando castigo:",
+            error
+        );
+
+        mensaje(
+            "castigoMessage",
+            "❌ No se pudo eliminar el castigo.",
+            "error"
+        );
+
+    }
+
+}
+    /* =========================================================
+   PUBLICAR CASTIGOS
+========================================================= */
+
+async function publicarCastigos(){
+
+    if(!confirm("¿Publicar todos los castigos pendientes?")){
+        return;
+    }
+
+    try{
+
+        const respuesta =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/castigos?publicado=eq.false`,
+                {
+                    method:"PATCH",
+
+                    headers:{
+                        ...headersAdmin(),
+                        "Content-Type":"application/json",
+                        "Prefer":"return=minimal"
+                    },
+
+                    body:JSON.stringify({
+
+                        publicado:true
+
+                    })
+                }
+            );
+
+
+        if(!respuesta.ok){
+
+            throw new Error(
+                await respuesta.text()
+            );
+        }
+
+
+        mensaje(
+            "castigoMessage",
+            "✅ Castigos publicados correctamente.",
+            "success"
+        );
+
+
+        cargarCastigos();
+
+
+    }catch(error){
+
+        console.error(
+            "Error publicando castigos:",
+            error
+        );
+
+
+        mensaje(
+            "castigoMessage",
+            "❌ No se pudieron publicar los castigos.",
+            "error"
+        );
+
+    }
+
+}
 /* =========================================================
    GUARDAR TARJETA
 ========================================================= */
