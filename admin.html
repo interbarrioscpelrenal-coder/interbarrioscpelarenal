@@ -3864,6 +3864,7 @@ async function cargarCastigos(){
         const datos =
             await respuesta.json();
 
+
         const contenedor =
             document.getElementById("listaCastigos");
 
@@ -3880,50 +3881,122 @@ async function cargarCastigos(){
         }
 
 
+        /*
+         * Comprobar el estado de cada castigo.
+         */
+
+        const castigosConEstado =
+            await Promise.all(
+
+                datos.map(
+                    async c => {
+
+                        const terminada =
+                            await fechaCastigoTerminada(
+                                c.torneo,
+                                c.fecha_hasta
+                            );
+
+
+                        return {
+
+                            ...c,
+
+                            terminado:terminada
+
+                        };
+
+                    }
+                )
+
+            );
+
+
         contenedor.innerHTML =
-            datos.map(c => `
-
-                <div class="list-item">
-
-                    <div class="list-main">
-
-                        <strong>
-                            🚫 ${escapar(c.nombre)}
-                        </strong>
-
-                        <span>
-                            ${escapar(c.equipo)}
-                            ·
-                            ${escapar(c.motivo)}
-                            ·
-                            ${c.torneo}
-                            ·
-                            SUSPENDIDO HASTA FECHA ${c.fecha_hasta}
-                            ${
-                                c.publicado
-                                ? " · 🌐 Publicado"
-                                : " · 📝 Borrador"
-                            }
-                        </span>
-
-                    </div>
+            castigosConEstado.map(
+                c => {
 
 
-                    <div class="list-actions">
+                    const estado =
+                        c.terminado
 
-                        <button
-                            type="button"
-                            onclick="eliminarCastigo(${c.id})"
-                            title="Eliminar castigo"
-                        >
-                            🗑️
-                        </button>
+                        ? `
+                            <strong>
+                                🟢 DISPONIBLE
+                            </strong>
+                        `
 
-                    </div>
+                        : `
+                            <strong>
+                                🚫 SUSPENDIDO
+                            </strong>
+                        `;
 
-                </div>
 
-            `).join("");
+                    return `
+
+                        <div class="list-item">
+
+                            <div class="list-main">
+
+                                <strong>
+                                    🚫
+                                    ${escapar(c.nombre)}
+                                </strong>
+
+                                <span>
+
+                                    ${escapar(c.equipo)}
+
+                                    ·
+
+                                    ${escapar(c.motivo)}
+
+                                    ·
+
+                                    ${c.torneo}
+
+                                    ·
+
+                                    HASTA FECHA
+                                    ${c.fecha_hasta}
+
+                                    ·
+
+                                    ${estado}
+
+                                    ${
+                                        c.publicado
+
+                                        ? " · 🌐 Publicado"
+
+                                        : " · 📝 Borrador"
+                                    }
+
+                                </span>
+
+                            </div>
+
+
+                            <div class="list-actions">
+
+                                <button
+                                    type="button"
+                                    onclick="eliminarCastigo(${c.id})"
+                                    title="Eliminar castigo"
+                                >
+                                    🗑️
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+
+            ).join("");
 
 
     }catch(error){
