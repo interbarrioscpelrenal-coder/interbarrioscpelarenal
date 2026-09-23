@@ -1097,11 +1097,12 @@ async function cargarDatosPublicos(){
       
     ]);
 
-  const [
+ const [
   rPartidos,
   rGoleadores,
   rTarjetas,
-rCampeones
+  rCampeones,
+  rCastigos
 ]=resultados;
 
 
@@ -1207,6 +1208,27 @@ if(rCampeones.status==="fulfilled"){
   console.warn(
     "⚠️ Campeones históricos públicos no disponibles:",
     rCampeones.reason
+  );
+
+}
+  /* =====================================================
+   CASTIGOS
+   ===================================================== */
+
+if(rCastigos.status==="fulfilled"){
+
+  castigosPublicos =
+    Array.isArray(rCastigos.value)
+      ? rCastigos.value
+      : [];
+
+}else{
+
+  castigosPublicos=[];
+
+  console.warn(
+    "⚠️ Castigos públicos no disponibles:",
+    rCastigos.reason
   );
 
 }
