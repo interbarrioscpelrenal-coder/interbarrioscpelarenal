@@ -3438,7 +3438,102 @@ async function cargarTarjetas(){
     }
 
 }
+    
+/* =========================================================
+   SUMAR / RESTAR TARJETAS
+========================================================= */
 
+async function cambiarTarjetas(id, cantidad){
+
+    try{
+
+        /* Obtener tarjeta actual */
+
+        const respuesta =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/tarjetas?id=eq.${id}&select=id,nombre,equipo,tipo,cantidad,publicado`,
+                {
+                    headers:headersAdmin()
+                }
+            );
+
+        if(!respuesta.ok){
+
+            throw new Error(
+                await respuesta.text()
+            );
+        }
+
+        const datos =
+            await respuesta.json();
+
+        if(!datos.length){
+
+            throw new Error(
+                "Tarjeta no encontrada."
+            );
+        }
+
+        const tarjeta =
+            datos[0];
+
+        const cantidadActual =
+            Number(tarjeta.cantidad)||0;
+
+        const nuevaCantidad =
+            Math.max(
+                0,
+                cantidadActual + Number(cantidad)
+            );
+
+        /* Actualizar el mismo registro */
+
+        const actualizar =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/tarjetas?id=eq.${id}`,
+                {
+                    method:"PATCH",
+                    headers:{
+                        ...headersAdmin(),
+                        "Prefer":"return=minimal"
+                    },
+                    body:JSON.stringify({
+
+                        cantidad:nuevaCantidad
+
+                    })
+                }
+            );
+
+        if(!actualizar.ok){
+
+            throw new Error(
+                await actualizar.text()
+            );
+        }
+
+        mensaje(
+            "tarjetaMessage",
+            `✅ ${tarjeta.nombre}: ${nuevaCantidad} ${tarjeta.tipo.toLowerCase()}${nuevaCantidad === 1 ? "" : "s"}.`,
+            "success"
+        );
+
+        cargarTarjetas();
+        actualizarContadores();
+
+    }catch(error){
+
+        console.error(error);
+
+        mensaje(
+            "tarjetaMessage",
+            "❌ No se pudo actualizar la cantidad.",
+            "error"
+        );
+
+    }
+
+}
 /* =========================================================
    GUARDAR TARJETA
 ========================================================= */
