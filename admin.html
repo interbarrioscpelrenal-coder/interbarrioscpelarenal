@@ -4056,6 +4056,64 @@ async function publicarCastigos(){
     }
 
 }
+    /* =========================================================
+   COMPROBAR SI UNA FECHA YA TERMINÓ
+========================================================= */
+
+async function fechaCastigoTerminada(torneo, fecha){
+
+    try{
+
+        const respuesta =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/partidos?select=id,fecha,torneo,estado,publicado&fecha=eq.${fecha}&torneo=eq.${encodeURIComponent(torneo)}`,
+                {
+                    headers:headersAdmin()
+                }
+            );
+
+        if(!respuesta.ok){
+
+            throw new Error(
+                await respuesta.text()
+            );
+        }
+
+        const partidos =
+            await respuesta.json();
+
+
+        /*
+         * Una fecha del campeonato tiene 3 partidos.
+         * La fecha se considera terminada únicamente
+         * cuando los 3 tienen resultado publicado.
+         */
+
+        if(partidos.length < 3){
+
+            return false;
+        }
+
+
+        return partidos.every(
+            partido =>
+                partido.estado === "Resultado publicado" &&
+                partido.publicado === true
+        );
+
+
+    }catch(error){
+
+        console.error(
+            "Error comprobando fecha del castigo:",
+            error
+        );
+
+        return false;
+
+    }
+
+}
 /* =========================================================
    GUARDAR TARJETA
 ========================================================= */
