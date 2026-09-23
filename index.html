@@ -958,6 +958,60 @@ function renderEstadisticas(){
 document.getElementById(
   "estadistica-campeones"
 ).innerHTML=listaCampeones;
+  /* =====================================================
+   CASTIGOS
+   ===================================================== */
+
+const listaCastigos =
+  castigosPublicos.length
+  ?
+  `<div class="stats">
+    ${castigosPublicos.map(c=>{
+
+      const fecha =
+        Number(c.fecha_hasta) || 0;
+
+      const partidosFecha =
+        partidosPublicos.filter(p =>
+          String(p.torneo || "").toUpperCase() ===
+          String(c.torneo || "").toUpperCase() &&
+          Number(p.fecha) === fecha
+        );
+
+      const terminada =
+        partidosFecha.length >= 3 &&
+        partidosFecha.every(p =>
+          String(p.estado || "") === "Resultado publicado" &&
+          p.publicado === true
+        );
+
+      return `
+        <div class="stat">
+
+          <strong>
+            ${terminada ? "🟢 DISPONIBLE" : "🚫 SUSPENDIDO"}
+          </strong>
+
+          <span>
+            ${esc(c.nombre)} · ${esc(c.equipo)}
+          </span>
+
+          <span>
+            ${esc(c.motivo)}
+            · ${esc(c.torneo)}
+            · HASTA FECHA ${fecha}
+          </span>
+
+        </div>
+      `;
+
+    }).join("")}
+  </div>`
+  :
+  `<div class="notice">No hay castigos publicados.</div>`;
+
+document.getElementById("estadistica-castigos").innerHTML =
+  listaCastigos;
 
   mostrarEstadistica("goleadores");
 }
