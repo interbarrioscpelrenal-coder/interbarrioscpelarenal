@@ -3008,7 +3008,101 @@ async function cargarGoleadores(){
     }
 
 }
+/* =========================================================
+   SUMAR / RESTAR GOLES
+========================================================= */
 
+async function cambiarGoles(id, cantidad){
+
+    try{
+
+        /* Obtener goleador actual */
+
+        const respuesta =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/goleadores?id=eq.${id}&select=id,nombre,equipo,goles,publicado`,
+                {
+                    headers:headersAdmin()
+                }
+            );
+
+        if(!respuesta.ok){
+
+            throw new Error(
+                await respuesta.text()
+            );
+        }
+
+        const datos =
+            await respuesta.json();
+
+        if(!datos.length){
+
+            throw new Error(
+                "Goleador no encontrado."
+            );
+        }
+
+        const goleador =
+            datos[0];
+
+        const golesActuales =
+            Number(goleador.goles)||0;
+
+        const nuevosGoles =
+            Math.max(
+                0,
+                golesActuales + Number(cantidad)
+            );
+
+        /* Actualizar el mismo registro */
+
+        const actualizar =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/goleadores?id=eq.${id}`,
+                {
+                    method:"PATCH",
+                    headers:{
+                        ...headersAdmin(),
+                        "Prefer":"return=minimal"
+                    },
+                    body:JSON.stringify({
+
+                        goles:nuevosGoles
+
+                    })
+                }
+            );
+
+        if(!actualizar.ok){
+
+            throw new Error(
+                await actualizar.text()
+            );
+        }
+
+        mensaje(
+            "goleadorMessage",
+            `✅ ${goleador.nombre}: ${nuevosGoles} goles.`,
+            "success"
+        );
+
+        cargarGoleadores();
+        actualizarContadores();
+
+    }catch(error){
+
+        console.error(error);
+
+        mensaje(
+            "goleadorMessage",
+            "❌ No se pudo actualizar los goles.",
+            "error"
+        );
+
+    }
+
+}
 /* =========================================================
    GUARDAR GOLEADOR
 ========================================================= */
