@@ -444,7 +444,31 @@ function tab(id){
     x.classList.toggle("active",["ap","cl","ac"][i]===id);
   });
 }
+function cambiarTorneo(torneo){
 
+  torneoVisible=String(torneo||"APERTURA").toUpperCase();
+
+  const ap=document.getElementById("torneo-ap");
+  const cl=document.getElementById("torneo-cl");
+
+  if(ap){
+    ap.classList.toggle(
+      "active",
+      torneoVisible==="APERTURA"
+    );
+  }
+
+  if(cl){
+    cl.classList.toggle(
+      "active",
+      torneoVisible==="CLAUSURA"
+    );
+  }
+
+  renderResultados();
+  renderPronosticos();
+
+}
 function agruparPorFecha(lista){
   const mapa={};
 
