@@ -1245,7 +1245,184 @@ tr:last-child td{
     </div>
 
 </section>
+<!-- =========================
+     CASTIGOS / SUSPENSIONES
+========================= -->
 
+<section class="panel">
+
+    <h2>🚫 Castigos / Suspensiones</h2>
+
+    <p class="panel-description">
+        Registra suspensiones de jugadores y controla automáticamente
+        cuándo vuelven a estar disponibles.
+    </p>
+
+    <div class="form-grid">
+
+        <div class="field">
+            <label>NOMBRE DEL JUGADOR</label>
+
+            <input
+                id="castigoNombre"
+                type="text"
+                placeholder="Nombre del jugador"
+            >
+        </div>
+
+
+        <div class="field">
+
+            <label>EQUIPO</label>
+
+            <select id="castigoEquipo">
+
+                <option>SANTA MARÍA</option>
+                <option>CHILE CHICO</option>
+                <option>PROGRESO DEL VALLE</option>
+                <option>LA PLAZA</option>
+                <option>SAN JUAN</option>
+                <option>SAN FRANCISCO</option>
+
+            </select>
+
+        </div>
+
+
+        <div class="field">
+
+            <label>MOTIVO</label>
+
+            <select id="castigoMotivo">
+
+                <option value="3 AMARILLAS ACUMULADAS">
+                    3 AMARILLAS ACUMULADAS
+                </option>
+
+                <option value="TARJETA ROJA DIRECTA">
+                    TARJETA ROJA DIRECTA
+                </option>
+
+                <option value="TARJETA ROJA POR DOBLE AMARILLA">
+                    TARJETA ROJA POR DOBLE AMARILLA
+                </option>
+
+                <option value="OTRO MOTIVO">
+                    OTRO MOTIVO
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="field">
+
+            <label>TORNEO</label>
+
+            <select id="castigoTorneo">
+
+                <option value="APERTURA">
+                    APERTURA
+                </option>
+
+                <option value="CLAUSURA">
+                    CLAUSURA
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="field">
+
+            <label>SUSPENDIDO HASTA</label>
+
+            <select id="castigoFecha">
+
+                <option value="1">
+                    FECHA 1
+                </option>
+
+                <option value="2">
+                    FECHA 2
+                </option>
+
+                <option value="3">
+                    FECHA 3
+                </option>
+
+                <option value="4">
+                    FECHA 4
+                </option>
+
+                <option value="5">
+                    FECHA 5
+                </option>
+
+                <option value="6">
+                    FECHA 6
+                </option>
+
+                <option value="7">
+                    FECHA 7
+                </option>
+
+                <option value="8">
+                    FECHA 8
+                </option>
+
+                <option value="9">
+                    FECHA 9
+                </option>
+
+                <option value="10">
+                    FECHA 10
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <div class="buttons">
+
+        <button
+            class="btn btn-dark"
+            type="button"
+            onclick="guardarCastigo()"
+        >
+            💾 GUARDAR CASTIGO
+        </button>
+
+        <button
+            class="btn btn-green"
+            type="button"
+            onclick="publicarCastigos()"
+        >
+            🌐 PUBLICAR CASTIGOS
+        </button>
+
+    </div>
+
+
+    <div id="castigoMessage" class="status">
+        —
+    </div>
+
+
+    <div id="listaCastigos" class="list">
+
+        <div class="empty">
+            Cargando...
+        </div>
+
+    </div>
+
+</section>
 
 <!-- =========================
      PRONOSTICOS REGISTRADOS
