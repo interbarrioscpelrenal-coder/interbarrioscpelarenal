@@ -1089,7 +1089,11 @@ async function cargarDatosPublicos(){
       supabaseGet(
         "campeones_historicos",
         "?select=id,anio,campeon,publicado&publicado=eq.true&order=anio.desc"
-      )
+      ),
+      supabaseGet(
+  "castigos",
+  "?select=id,nombre,equipo,motivo,torneo,fecha_hasta,publicado&publicado=eq.true&order=id.desc"
+)
       
     ]);
 
