@@ -3711,6 +3711,133 @@ async function cambiarTarjetas(id, cantidad){
     }
 
 }
+    /* =========================================================
+   CASTIGOS / SUSPENSIONES
+========================================================= */
+
+async function guardarCastigo(){
+
+    const nombre =
+        document
+            .getElementById("castigoNombre")
+            .value
+            .trim();
+
+    const equipo =
+        document
+            .getElementById("castigoEquipo")
+            .value;
+
+    const motivo =
+        document
+            .getElementById("castigoMotivo")
+            .value;
+
+    const torneo =
+        document
+            .getElementById("castigoTorneo")
+            .value;
+
+    const fecha_hasta =
+        Number(
+            document
+                .getElementById("castigoFecha")
+                .value
+        );
+
+
+    if(!nombre){
+
+        mensaje(
+            "castigoMessage",
+            "❌ Escribe el nombre del jugador.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    if(!fecha_hasta){
+
+        mensaje(
+            "castigoMessage",
+            "❌ Selecciona la fecha de suspensión.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    try{
+
+        const respuesta =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/castigos`,
+                {
+                    method:"POST",
+
+                    headers:{
+                        ...headersAdmin(),
+                        "Content-Type":"application/json",
+                        "Prefer":"return=minimal"
+                    },
+
+                    body:JSON.stringify({
+
+                        nombre:nombre,
+                        equipo:equipo,
+                        motivo:motivo,
+                        torneo:torneo,
+                        fecha_hasta:fecha_hasta,
+                        publicado:false
+
+                    })
+                }
+            );
+
+
+        if(!respuesta.ok){
+
+            throw new Error(
+                await respuesta.text()
+            );
+        }
+
+
+        mensaje(
+            "castigoMessage",
+            "✅ Castigo guardado correctamente.",
+            "success"
+        );
+
+
+        document
+            .getElementById("castigoNombre")
+            .value = "";
+
+
+        cargarCastigos();
+
+
+    }catch(error){
+
+        console.error(
+            "Error guardando castigo:",
+            error
+        );
+
+
+        mensaje(
+            "castigoMessage",
+            "❌ No se pudo guardar el castigo.",
+            "error"
+        );
+
+    }
+
+}
 /* =========================================================
    GUARDAR TARJETA
 ========================================================= */
